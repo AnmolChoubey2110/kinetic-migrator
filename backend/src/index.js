@@ -2,7 +2,6 @@ import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/auth.js";
-import rulesRoutes from "./routes/rules.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 4000;
@@ -17,18 +16,17 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/rules", rulesRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-  const status = err.status || err.statusCode || 500;
+  const status = err.status || 500;
   const message =
     status === 500 && process.env.NODE_ENV === "production"
       ? "Internal server error"
@@ -37,5 +35,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(port, () => {
-  console.log(`API listening on http://localhost:${port}`);
+  console.log(`Auth API listening on http://localhost:${port}`);
 });
