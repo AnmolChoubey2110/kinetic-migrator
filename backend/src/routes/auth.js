@@ -39,7 +39,7 @@ function validateCredentials(email, password) {
 
 function signToken(user) {
   return jwt.sign(
-    { email: user.email },
+    { email: user.email, role: user.role },
     process.env.JWT_SECRET,
     {
       subject: String(user.id),
