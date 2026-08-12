@@ -62,7 +62,7 @@ export const adminCopy = {
 
 export const adminNavPrimary = [
   { key: "admin" as const, label: adminCopy.navAdmin, icon: "settings", href: "/admin" },
-  { key: "analysis" as const, label: adminCopy.navAnalysis, icon: "analytics", href: "#" },
+  { key: "analysis" as const, label: adminCopy.navAnalysis, icon: "analytics", href: "/analysis" },
 ];
 
 export const adminNavSecondary = [

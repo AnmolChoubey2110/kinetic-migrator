@@ -16,7 +16,7 @@ Monorepo for **Kinetic Migrator / SAP Migration Smart Validator**:
 - `backend/` — Node auth API (register/login); roles will gate admin vs user later
 
 **User routes:** `/register`, `/signin`, `/staging`, `/processing`, `/preview`, `/validation`, `/reports`  
-**Admin routes:** `/admin` (Admin Configuration Hub) — mock UI only; role checks deferred to backend
+**Admin routes:** `/admin` (Admin Configuration Hub), `/analysis` (AI Analysis & Mapping Hub; Analyze opens AI chat) — mock UI only; role checks deferred to backend
 
 Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipeline results).
 
@@ -37,7 +37,9 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 - [x] Implement "Admin Rule Hub - Optimized Layout"
 - [x] Implement "Admin Rule Hub - Final Branding Sync" (AI chat)
 - [x] Split repo into `frontend/` + `backend/`
-- [ ] Implement remaining Stitch screens (Mapping Hub / Analysis, etc.)
+- [x] Implement "AI Analysis & Mapping Hub - AI Closed"
+- [x] Implement "AI Analysis & Mapping Hub" (Analyze opens AI chat)
+- [ ] Implement remaining Stitch screens
 - [ ] Gate admin vs user via backend roles
 - [ ] Wire remaining workspace screens to backend
 - [ ] Ship production-ready migration validator
@@ -80,6 +82,8 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 | Processing Loading | `c1aeb12b3ae34741b513a332c1323bd2` — Loading State |
 | Admin Rule Hub | `e489784146424ff6a68af939e47a1fa2` — Final Branding Sync (current; AI chat) |
 | Admin Rule Hub (prior) | `ee124e3b0db44b29a6785c7fb053c427` — Optimized Layout |
+| Mapping Hub | `71b3a5a4fb024b67b4f7d1bdb97cbab8` — AI Analysis & Mapping Hub (current; Analyze opens chat) |
+| Mapping Hub (prior) | `fab3a5cb41cd47ffade8d08b7e95f3d2` — AI Closed |
 | Typical canvas | Desktop ~2560×2048 |
 
 ### Design theme notes
@@ -90,10 +94,11 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 - **Register inputs:** underline glow `#008fd3` (`.glow-input`)
 - **Sign In inputs:** underline glow `#90cdff` (`.glow-input-primary`)
 - **Register CTA:** `brand-blue`; **Sign In CTA:** `primary-container` + arrow
-- **CSS utilities:** `.glass-panel` (auth), `.workspace-glass`, `.upload-zone`, `.drop-zone`, `.assistant-panel`
+- **CSS utilities:** `.glass-panel` (auth), `.workspace-glass`, `.upload-zone`, `.drop-zone`, `.assistant-panel`, `.mapping-glass` / `.table-row-border` / `.input-glass` (mapping hub)
 - **Validation AI Closed:** main content uses full width beside sidebar; **Suggest via AI** opens the assistant rail
 - **Processing flow:** Staging Process Data → `/processing` overlay (brand-blue progress) → `/reports`
 - **Admin surface:** separate `AdminSideNav` (Admin / Analysis); role gating deferred to backend
+- **Mapping Hub:** closed by default (AI Closed); **Analyze** opens `MappingAiAssistantPanel` (400px); top bar / main shrink when open
 
 ---
 
@@ -110,6 +115,7 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 | `/validation` | Data Validation Center | AI Closed; Suggest via AI opens rail |
 | `/reports` | Migration Pipeline Results | High Contrast metrics + issues table |
 | `/admin` | Admin Configuration Hub | Final Branding Sync; Suggest via AI opens chat |
+| `/analysis` | AI Analysis & Mapping Hub | AI Closed by default; Analyze opens mapping AI chat |
 
 **Workspace nav wiring** (`frontend/lib/mock/workspace.ts`):
 
@@ -139,7 +145,8 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 │   │   ├── preview/page.tsx
 │   │   ├── validation/page.tsx
 │   │   ├── reports/page.tsx
-│   │   └── admin/page.tsx
+│   │   ├── admin/page.tsx
+│   │   └── analysis/page.tsx
 │   ├── components/
 │   │   ├── auth/
 │   │   ├── layout/                 # SideNav, TopAppBar
@@ -149,6 +156,7 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 │   │   ├── validation/
 │   │   ├── pipeline/               # Migration Pipeline Results
 │   │   ├── admin/                  # Admin Rule Hub
+│   │   ├── mapping/                # AI Analysis & Mapping Hub
 │   │   └── ui/
 │   ├── lib/
 │   │   ├── api/auth.ts             # Backend auth client
@@ -184,7 +192,7 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 - **No `src/` directory**
 - **Stitch is UI source of truth** — match layout, typography, colors, spacing, dimensions; do not invent extra UI
 - **Shared workspace chrome:** one `SideNav`; `TopAppBar` variants per screen
-- **Mock workspace data:** `frontend/lib/mock/*` for staging/preview/validation/pipeline
+- **Mock workspace data:** `frontend/lib/mock/*` for staging/preview/validation/pipeline/admin/mapping
 - **Auth API client:** `frontend/lib/api/auth.ts` → `backend` register/login
 - **Auth vs workspace surfaces:** `.glass-panel` for auth; `.workspace-glass` / `.drop-zone` / `.assistant-panel` for validation workspace
 - Keep this file current when adding screens or structural changes
@@ -205,7 +213,7 @@ Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipelin
 | Validation (`/validation`) | Done | AI Closed; assistant closed by default + Suggest via AI |
 | Pipeline Results (`/reports`) | Done | High Contrast metrics + issues table |
 | Admin Rule Hub (`/admin`) | Done | Final Branding Sync; AI chat via Suggest via AI |
-| Mapping / Analysis Hub | Planned | Stitch screens exist; Admin Analysis nav `#` |
+| Mapping Hub (`/analysis`) | Done | AI Closed default; Analyze opens MappingAiAssistantPanel |
 | Auth API (`frontend` ↔ `backend`) | Done | Register/login wired |
 | Workspace API integration | Planned | Staging/preview/validation/reports still mock |
 
@@ -332,6 +340,23 @@ Mock: `frontend/lib/mock/admin.ts`
 Stitch: **Admin Rule Hub - Final Branding Sync** (`e489784146424ff6a68af939e47a1fa2`)  
 Note: Admin vs user differentiation is role-based in backend (not wired yet).
 
+### AI Analysis & Mapping Hub
+
+```
+MappingHubScreen (client: assistantOpen, default false)
+├── AdminSideNav (active: analysis)
+├── TopAppBar (variant: analysis; shrinks when assistant open)
+├── MappingAiAssistantPanel (closed by default; opens via Analyze)
+└── main (md:ml-sidebar; xl:mr-assistant when open)
+    ├── MappingConfidenceCard + MigrationProgressCard
+    └── FieldMappingTable (search / filter / Analyze)
+```
+
+Mock: `frontend/lib/mock/mapping.ts`  
+Stitch closed: **AI Analysis & Mapping Hub - AI Closed** (`fab3a5cb41cd47ffade8d08b7e95f3d2`)  
+Stitch open: **AI Analysis & Mapping Hub** (`71b3a5a4fb024b67b4f7d1bdb97cbab8`)  
+Note: Analyze opens the mapping chat rail (ITEM_NUMBER / MATNR thread). Do not reuse AdminAiAssistantPanel — chat layout differs.
+
 ---
 
 ## Environment & Tooling
@@ -376,6 +401,10 @@ Note: Admin vs user differentiation is role-based in backend (not wired yet).
 | 2026-08-13 | Admin Rule Hub uses dedicated AdminSideNav | Stitch admin chrome differs from user workspace nav |
 | 2026-08-13 | Admin role gating deferred | Backend roles will distinguish admin vs user later |
 | 2026-08-13 | Admin Suggest via AI opens AdminAiAssistantPanel | Final Branding Sync chat rail; closed until clicked |
+| 2026-08-13 | Mapping Hub at `/analysis` with AdminSideNav Analysis active | Matches Stitch admin Analysis chrome |
+| 2026-08-13 | Mapping Hub Analyze opens MappingAiAssistantPanel | Stitch open hub `71b3a5a4fb024b67b4f7d1bdb97cbab8`; closed until Analyze |
+| 2026-08-13 | Mapping chat is a dedicated panel, not AdminAiAssistantPanel | Open-hub chat (MATNR / TR-042) differs from admin rule suggestions |
+| 2026-08-13 | Mapping hub uses `.mapping-glass` not auth `.glass-panel` | Stitch mapping glass recipe differs from auth |
 
 ---
 
@@ -383,6 +412,9 @@ Note: Admin vs user differentiation is role-based in backend (not wired yet).
 
 ### 2026-08-13
 
+- Implemented **AI Analysis & Mapping Hub** open chat: **Analyze** opens `MappingAiAssistantPanel` (MATNR truncation thread)
+- Implemented **AI Analysis & Mapping Hub - AI Closed** at `/analysis` (confidence score, migration progress gauge, field mapping table)
+- Wired AdminSideNav Analysis → `/analysis`; added TopAppBar `analysis` variant
 - Implemented **Admin Rule Hub - Optimized Layout** at `/admin` (source rules, business object, validation + AI suggestions)
 - Synced Admin to **Final Branding Sync**: Help/Logs nav, status in top bar, **AdminAiAssistantPanel** opens from Suggest via AI
 - Added admin-only SideNav chrome; documented role-based admin/user split as future backend work
@@ -408,7 +440,6 @@ Note: Admin vs user differentiation is role-based in backend (not wired yet).
 
 ## Open Questions / TODO
 
-- [ ] Remaining Stitch screens: AI Analysis & Mapping Hub
 - [ ] Backend role gating for admin vs user surfaces
 - [ ] Backend contracts for staging/preview/validation/reports/processing/admin
 - [ ] Deployment target (e.g. Vercel + API host)?

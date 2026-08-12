@@ -9,8 +9,6 @@ export const workspaceCopy = {
   workspaceTitle: "Kinetic Workspace",
   enterpriseId: "Enterprise ID: 8821",
   productName: "Kinetic Migrator",
-  systemHealthy: "System Healthy",
-  statusOnline: "Status: Online",
   logoAlt: "Kinetic Migrator New Logo",
   avatarAlt: "User avatar",
 } as const;

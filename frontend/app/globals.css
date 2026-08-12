@@ -22,6 +22,7 @@
   --color-primary-container: #2098dd;
   --color-on-primary-container: #002c46;
   --color-primary-fixed: #cbe6ff;
+  --color-primary-fixed-dim: #90cdff;
   --color-secondary: #d0bcff;
   --color-on-secondary: #3c0091;
   --color-secondary-container: #571bc1;
@@ -29,6 +30,7 @@
   --color-on-tertiary: #4a2800;
   --color-tertiary-container: #d07d11;
   --color-on-tertiary-container: #412200;
+  --color-tertiary-fixed: #ffdcbe;
   --color-tertiary-fixed-dim: #ffb871;
   --color-brand-blue: #008fd3;
   --color-error: #ffb4ab;
@@ -105,6 +107,32 @@
   .drop-zone.dragover {
     border-color: #90cdff;
     background: rgba(144, 205, 255, 0.05);
+  }
+
+  .mapping-glass {
+    background-color: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mapping-glass:hover {
+    background-color: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .table-row-border {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .input-glass {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .input-glass:focus {
+    border-bottom: 1px solid #90cdff;
+    outline: none;
   }
 
   .assistant-panel {
