@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
@@ -21,6 +22,7 @@ export function SignInForm({
   initialValues = mockSignInDefaults,
   onSubmit,
 }: SignInFormProps) {
+  const router = useRouter();
   const [values, setValues] = useState<SignInFormValues>(initialValues);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +53,7 @@ export function SignInForm({
       const { token } = await loginAccount(values.email.trim(), values.password);
       storeAuthToken(token);
       setSuccess("Signed in successfully");
+      router.push("/admin/rules");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

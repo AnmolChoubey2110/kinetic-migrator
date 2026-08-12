@@ -71,27 +71,37 @@ API listens on [http://localhost:4000](http://localhost:4000) by default.
 | `POST` | `/api/auth/login` | No | Returns JWT + user |
 | `GET` | `/api/auth/me` | Bearer JWT | Current user |
 
-Example register:
+### Validation rules endpoints
 
-```bash
-curl -X POST http://localhost:4000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"you@example.com\",\"password\":\"secret123\"}"
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/rules/business-objects` | Bearer | Predefined BO list |
+| `POST` | `/api/rules/generate` | Bearer | Upload Excel + BO → parse JSON → Grok rules (**not saved**) |
+| `POST` | `/api/rules/save` | Bearer | Persist reviewed rules JSON to DB |
+| `GET` | `/api/rules` | Bearer | List saved rule sets |
+| `GET` | `/api/rules/:id` | Bearer | Get one saved rule set |
+
+Admin UI: [http://localhost:3000/admin/rules](http://localhost:3000/admin/rules) (sign in first).
+
+Excel columns: **Key**, **Field Name**, **Data Type**, **Length**, **Default Value** (`Key=X` marks a key field).  
+Sample file: `samples/mm-fields-sample.xlsx`.
+
+Generate returns **common predefined rules** (trim / null-empty / duplicate) for every field plus **AI additional rules**. Nothing is saved until Admin clicks **Save**.
+
+Grok / xAI settings in `backend/.env`:
+
+```env
+GROK_API_KEY=your_key_here
+GROK_BASE_URL=https://api.x.ai/v1
+GROK_MODEL=grok-2-latest
 ```
 
-Example login:
+Get a key at [console.x.ai](https://console.x.ai/).
 
-```bash
-curl -X POST http://localhost:4000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"you@example.com\",\"password\":\"secret123\"}"
+For a **free-tier** OpenAI-compatible API (Groq), use:
+
+```env
+GROK_API_KEY=your_groq_key
+GROK_BASE_URL=https://api.groq.com/openai/v1
+GROK_MODEL=llama-3.3-70b-versatile
 ```
-
-Example protected route:
-
-```bash
-curl http://localhost:4000/api/auth/me \
-  -H "Authorization: Bearer <token>"
-```
-
-The Sign In / Register screens still use local mock submit handlers; wire them to these endpoints when ready.
