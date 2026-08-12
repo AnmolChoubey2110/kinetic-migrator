@@ -19,7 +19,7 @@ export const workspaceNavPrimary: NavItem[] = [
   { key: "upload", label: "Upload", icon: "upload_file", href: "/staging" },
   { key: "display", label: "Display", icon: "visibility", href: "/preview" },
   { key: "validate", label: "Validate", icon: "rule", href: "/validation" },
-  { key: "reports", label: "Reports", icon: "assessment", href: "#" },
+  { key: "reports", label: "Reports", icon: "assessment", href: "/reports" },
 ];
 
 export const workspaceNavSecondary: NavItem[] = [

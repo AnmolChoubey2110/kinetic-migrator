@@ -17,7 +17,7 @@ Monorepo for **Kinetic Migrator / SAP Migration Smart Validator**:
 
 Validation uses the **AI Closed** Stitch screen (assistant rail closed by default). Staging / preview / validation screens use mock data; auth forms call the backend API when available.
 
-**Frontend routes:** `/register`, `/signin`, `/staging`, `/preview`, `/validation` (`/` redirects to `/register`).
+**Frontend routes:** `/register`, `/signin`, `/staging`, `/preview`, `/validation`, `/reports` (`/` redirects to `/register`).
 
 ---
 
@@ -31,8 +31,9 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 - [x] Implement "Data Preview - Horizontal Table View"
 - [x] Implement "Data Validation Center - Cleaned Header"
 - [x] Implement "Data Validation Center - AI Closed"
+- [x] Implement "Migration Pipeline Results (High Contrast)"
 - [x] Split repo into `frontend/` + `backend/`
-- [ ] Implement remaining Stitch screens (Reports, Mapping Hub, Processing, Pipeline Results, Admin Rule Hub, etc.)
+- [ ] Implement remaining Stitch screens (Mapping Hub, Processing, Admin Rule Hub, etc.)
 - [ ] Wire remaining workspace screens to backend
 - [ ] Ship production-ready migration validator
 
@@ -70,6 +71,7 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 | Preview | `fed1d1f289a040c8970f0472bd3b4ae6` — Horizontal Table View |
 | Validation | `6e7ea4a050254afab8f3a107f6d66d2d` — AI Closed (current) |
 | Validation (prior) | `7c9bd36a84f044e19748431f90bd9fac` — Cleaned Header |
+| Pipeline Results | `aa1559614bba47afb8fb4705fc95d2e7` — High Contrast |
 | Typical canvas | Desktop ~2560×2048 |
 
 ### Design theme notes
@@ -95,15 +97,16 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 | `/staging` | Data Staging Center | Upload / preload–postload |
 | `/preview` | Data Preview | Preload / postload table tabs |
 | `/validation` | Data Validation Center | AI Closed; Suggest via AI opens rail |
+| `/reports` | Migration Pipeline Results | High Contrast metrics + issues table |
 
-**Workspace nav wiring** (`lib/mock/workspace.ts`):
+**Workspace nav wiring** (`frontend/lib/mock/workspace.ts`):
 
 | Nav item | Href |
 |----------|------|
 | Upload | `/staging` |
 | Display | `/preview` |
 | Validate | `/validation` |
-| Reports | `#` (not implemented) |
+| Reports | `/reports` |
 | Help / Logs | `#` (not implemented) |
 
 ---
@@ -121,13 +124,15 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 │   │   ├── signin/page.tsx
 │   │   ├── staging/page.tsx
 │   │   ├── preview/page.tsx
-│   │   └── validation/page.tsx
+│   │   ├── validation/page.tsx
+│   │   └── reports/page.tsx
 │   ├── components/
 │   │   ├── auth/
 │   │   ├── layout/                 # SideNav, TopAppBar
 │   │   ├── staging/
 │   │   ├── preview/
 │   │   ├── validation/
+│   │   ├── pipeline/               # Migration Pipeline Results
 │   │   └── ui/
 │   ├── lib/
 │   │   ├── api/auth.ts             # Backend auth client
@@ -163,7 +168,7 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 - **No `src/` directory**
 - **Stitch is UI source of truth** — match layout, typography, colors, spacing, dimensions; do not invent extra UI
 - **Shared workspace chrome:** one `SideNav`; `TopAppBar` variants per screen
-- **Mock workspace data:** `frontend/lib/mock/*` for staging/preview/validation
+- **Mock workspace data:** `frontend/lib/mock/*` for staging/preview/validation/pipeline
 - **Auth API client:** `frontend/lib/api/auth.ts` → `backend` register/login
 - **Auth vs workspace surfaces:** `.glass-panel` for auth; `.workspace-glass` / `.drop-zone` / `.assistant-panel` for validation workspace
 - Keep this file current when adding screens or structural changes
@@ -181,9 +186,10 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 | Staging (`/staging`) | Done | High Contrast upload hub |
 | Preview (`/preview`) | Done | Preload/postload horizontal tables |
 | Validation (`/validation`) | Done | AI Closed; assistant closed by default + Suggest via AI |
-| Reports / Mapping / Processing | Planned | Stitch screens exist; not built |
+| Pipeline Results (`/reports`) | Done | High Contrast metrics + issues table |
+| Mapping / Processing / Admin Rule Hub | Planned | Stitch screens exist; not built |
 | Auth API (`frontend` ↔ `backend`) | Done | Register/login wired |
-| Workspace API integration | Planned | Staging/preview/validation still mock |
+| Workspace API integration | Planned | Staging/preview/validation/reports still mock |
 
 ---
 
@@ -261,6 +267,21 @@ ValidationScreen (client: assistantOpen, default false)
 Mock: `lib/mock/validation.ts`  
 Stitch: **Data Validation Center - AI Closed** (`6e7ea4a050254afab8f3a107f6d66d2d`)
 
+### Pipeline Results (Reports)
+
+```
+PipelineResultsScreen
+├── SideNav (active: reports)
+├── TopAppBar (variant: reports — logo + mono status + notif/settings)
+└── main (md:ml-sidebar; max-w 1600)
+    ├── PipelineResultsHeader
+    ├── PipelineMetricsRow (4 metric cards + health gauge)
+    └── PipelineIssuesTable (filters + table + pagination)
+```
+
+Mock: `frontend/lib/mock/pipeline.ts`  
+Stitch: **Migration Pipeline Results (High Contrast)** (`aa1559614bba47afb8fb4705fc95d2e7`)
+
 ---
 
 ## Environment & Tooling
@@ -299,6 +320,8 @@ Stitch: **Data Validation Center - AI Closed** (`6e7ea4a050254afab8f3a107f6d66d2
 | 2026-08-12 | Validation AI Closed is default UI | Stitch screen `6e7ea4a050254afab8f3a107f6d66d2d`; assistant hidden until Suggest via AI |
 | 2026-08-12 | Validation top bar / main pad follow assistantOpen | Avoid empty 400px gutter when rail is closed |
 | 2026-08-12 | Repo split into `frontend/` + `backend/` | Monorepo layout on `master` |
+| 2026-08-12 | Pipeline Results at `/reports` | Matches SideNav Reports active state in Stitch |
+| 2026-08-12 | Reports TopAppBar uses logo + mono status (no avatar) | Match Pipeline Results Stitch chrome |
 
 ---
 
@@ -316,14 +339,16 @@ Stitch: **Data Validation Center - AI Closed** (`6e7ea4a050254afab8f3a107f6d66d2
 - Removed Sign In SystemStatus (not in current Sign In Stitch HTML)
 - Synced Validation to **AI Closed**: closed assistant rail, **Suggest via AI**, title/subtitle "Data Cleaning Results"
 - Moved workspace UI into monorepo `frontend/` (staging / preview / validation + shared chrome); preserved `frontend/lib/api/auth.ts`
+- Implemented **Migration Pipeline Results** at `/reports` from Stitch High Contrast (metrics bento + issues table)
+- Wired SideNav Reports → `/reports`
 - Refreshed this document to match the current codebase tree and routes
 
 ---
 
 ## Open Questions / TODO
 
-- [ ] Remaining Stitch screens: Reports, AI Analysis & Mapping Hub, Processing Data, Migration Pipeline Results, Admin Rule & Validation Hub
-- [ ] Backend contracts for staging/preview/validation
+- [ ] Remaining Stitch screens: AI Analysis & Mapping Hub, Processing Data, Admin Rule & Validation Hub
+- [ ] Backend contracts for staging/preview/validation/reports
 - [ ] Deployment target (e.g. Vercel + API host)?
 
 ---

@@ -3,7 +3,7 @@ import { Icon } from "@/components/ui/Icon";
 import { workspaceCopy } from "@/lib/mock/workspace";
 
 type TopAppBarProps = {
-  variant?: "staging" | "preview" | "validation";
+  variant?: "staging" | "preview" | "validation" | "reports";
   pageTitle?: string;
   assistantOpen?: boolean;
 };
@@ -15,6 +15,50 @@ export function TopAppBar({
 }: TopAppBarProps) {
   const isPreview = variant === "preview";
   const isValidation = variant === "validation";
+  const isReports = variant === "reports";
+
+  if (isReports) {
+    return (
+      <header className="fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-between border-b border-outline-variant bg-surface px-8 shadow-sm md:left-sidebar-width">
+        <div className="flex flex-1 items-center gap-8">
+          <Image
+            src="/workspace-logo.png"
+            alt={workspaceCopy.logoAlt}
+            width={32}
+            height={32}
+            className="h-8 w-auto object-contain"
+          />
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="hidden items-center gap-4 lg:flex">
+            <span className="flex items-center gap-2 font-mono-data text-mono-data text-tertiary">
+              <span className="h-2 w-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(255,184,113,0.6)]" />
+              {workspaceCopy.systemHealthy}
+            </span>
+            <span className="flex items-center gap-2 font-mono-data text-mono-data text-on-surface">
+              <span className="h-2 w-2 rounded-full bg-on-surface" />
+              {workspaceCopy.statusOnline}
+            </span>
+          </div>
+          <div className="mx-2 hidden h-6 w-px bg-outline-variant lg:block" />
+          <button
+            type="button"
+            className="cursor-pointer text-on-surface transition-all hover:text-white"
+            aria-label="Notifications"
+          >
+            <Icon name="notifications" />
+          </button>
+          <button
+            type="button"
+            className="mr-4 cursor-pointer text-on-surface transition-all hover:text-white"
+            aria-label="Settings"
+          >
+            <Icon name="settings" />
+          </button>
+        </div>
+      </header>
+    );
+  }
 
   if (isValidation) {
     return (
