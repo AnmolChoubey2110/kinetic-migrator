@@ -2,6 +2,8 @@ import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/auth.js";
+import comparisonRoutes from "./routes/comparisons.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 4000;
@@ -16,6 +18,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(requestLogger);
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
@@ -23,6 +26,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/comparisons", comparisonRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
@@ -35,5 +39,11 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Auth API listening on http://localhost:${port}`);
+  console.log(`API listening on http://localhost:${port}`);
+  console.log(
+    `SAP OData: baseUrl=${process.env.SAP_ODATA_BASE_URL ? "set" : "MISSING"} username=${process.env.SAP_ODATA_USERNAME ? "set" : "MISSING"} password=${process.env.SAP_ODATA_PASSWORD ? "set" : "MISSING"}`,
+  );
+  console.log(
+    `Groq: apiKey=${process.env.GROQ_API_KEY ? "set" : "MISSING"} provider=${process.env.AI_REPORT_PROVIDER || "groq"}`,
+  );
 });

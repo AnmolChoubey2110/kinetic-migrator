@@ -36,6 +36,9 @@ backend/.env
 !.env.local.example
 !**/.env.local.example
 
+# uploaded comparison files
+backend/uploads/
+
 # misc
 .DS_Store
 *.pem
