@@ -75,3 +75,20 @@ CREATE TABLE IF NOT EXISTS comparison_reports (
 
 CREATE INDEX IF NOT EXISTS comparison_reports_batch_id_idx ON comparison_reports (batch_id);
 CREATE INDEX IF NOT EXISTS comparison_reports_status_idx ON comparison_reports (status);
+
+CREATE TABLE IF NOT EXISTS validation_rules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_object TEXT NOT NULL,
+  rules JSONB NOT NULL,
+  created_by UUID REFERENCES users (id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT validation_rules_business_object_check
+    CHECK (business_object IN ('MM', 'PO', 'GL Account', 'BP'))
+);
+
+CREATE INDEX IF NOT EXISTS validation_rules_business_object_idx
+  ON validation_rules (business_object);
+
+CREATE INDEX IF NOT EXISTS validation_rules_created_at_idx
+  ON validation_rules (created_at DESC);

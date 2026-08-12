@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/auth.js";
 import comparisonRoutes from "./routes/comparisons.js";
+import rulesRoutes from "./routes/rules.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 
 const app = express();
@@ -27,6 +28,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/comparisons", comparisonRoutes);
+app.use("/api/rules", rulesRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
