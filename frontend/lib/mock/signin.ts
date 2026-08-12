@@ -9,7 +9,7 @@ export const signInPlaceholders = {
 } as const;
 
 export const signInCopy = {
-  subtitle: "Sign in to access the Enterprise Console",
+  subtitle: "Sign in to access Data Migration Console",
   emailLabel: "Email",
   passwordLabel: "Password",
   forgotPassword: "Forgot password?",
@@ -17,7 +17,6 @@ export const signInCopy = {
   footerPrompt: "Don't have an account?",
   registerLabel: "Register",
   logoAlt: "Kinetic Migrator Logo",
-  systemStatus: "System Status: Online",
 } as const;
 
 /** Mock defaults for local UI only — no API connection. */

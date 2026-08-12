@@ -7,9 +7,9 @@ export function SignInHeader() {
       <Image
         src="/kinetic-logo.png"
         alt={signInCopy.logoAlt}
-        width={220}
-        height={64}
-        className="mb-2 h-16 w-auto"
+        width={500}
+        height={500}
+        className="mb-2 h-48 w-auto"
         priority
       />
       <p className="font-body-md text-body-md text-on-surface-variant">
