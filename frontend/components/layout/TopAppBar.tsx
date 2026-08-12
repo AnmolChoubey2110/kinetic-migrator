@@ -3,7 +3,7 @@ import { Icon } from "@/components/ui/Icon";
 import { workspaceCopy } from "@/lib/mock/workspace";
 
 type TopAppBarProps = {
-  variant?: "staging" | "preview" | "validation" | "reports";
+  variant?: "staging" | "preview" | "validation" | "reports" | "admin";
   pageTitle?: string;
   assistantOpen?: boolean;
 };
@@ -16,6 +16,49 @@ export function TopAppBar({
   const isPreview = variant === "preview";
   const isValidation = variant === "validation";
   const isReports = variant === "reports";
+  const isAdmin = variant === "admin";
+
+  if (isAdmin) {
+    return (
+      <header
+        className={`fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-between border-b border-white/5 bg-surface/40 px-8 shadow-sm backdrop-blur-[40px] transition-[right] duration-300 md:left-sidebar-width ${
+          assistantOpen ? "xl:right-assistant-panel-width" : ""
+        }`}
+      >
+        <div className="flex items-center gap-4">
+          <span className="font-headline-md text-headline-md font-black tracking-tight text-primary">
+            {workspaceCopy.productName}
+          </span>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="mr-4 hidden flex-col items-end border-r border-white/10 pr-6 xl:flex">
+            <span className="flex items-center gap-1.5 font-label-caps text-label-caps text-primary">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+              {workspaceCopy.systemHealthy}
+            </span>
+            <span className="font-body-sm text-body-sm text-on-surface-variant opacity-70">
+              {workspaceCopy.statusOnline}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="group relative cursor-pointer text-on-surface-variant transition-all hover:text-primary"
+            aria-label="Notifications"
+          >
+            <Icon name="notifications" />
+            <span className="absolute top-0 right-0 h-2 w-2 rounded-full border border-surface bg-error transition-colors group-hover:border-primary" />
+          </button>
+          <button
+            type="button"
+            className="cursor-pointer text-on-surface-variant transition-all hover:text-primary"
+            aria-label="Settings"
+          >
+            <Icon name="settings" />
+          </button>
+        </div>
+      </header>
+    );
+  }
 
   if (isReports) {
     return (

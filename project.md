@@ -2,7 +2,7 @@
 
 Living document for this project. Update this file as features, decisions, and architecture change.
 
-**Last updated:** 2026-08-12  
+**Last updated:** 2026-08-13  
 **Status:** UI implementation in progress  
 **Package name:** `cursor-final`  
 **Product:** Kinetic Migrator (SAP Migration Smart Validator)
@@ -13,11 +13,12 @@ Living document for this project. Update this file as features, decisions, and a
 
 Monorepo for **Kinetic Migrator / SAP Migration Smart Validator**:
 - `frontend/` — Next.js App Router UI (Stitch Remix is source of truth)
-- `backend/` — Node auth API (register/login)
+- `backend/` — Node auth API (register/login); roles will gate admin vs user later
 
-Validation uses the **AI Closed** Stitch screen (assistant rail closed by default). Staging / preview / validation screens use mock data; auth forms call the backend API when available.
+**User routes:** `/register`, `/signin`, `/staging`, `/processing`, `/preview`, `/validation`, `/reports`  
+**Admin routes:** `/admin` (Admin Configuration Hub) — mock UI only; role checks deferred to backend
 
-**Frontend routes:** `/register`, `/signin`, `/staging`, `/preview`, `/validation`, `/reports` (`/` redirects to `/register`).
+Flow: Staging **Process Data** → `/processing` (≤2s) → `/reports` (pipeline results).
 
 ---
 
@@ -32,8 +33,12 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 - [x] Implement "Data Validation Center - Cleaned Header"
 - [x] Implement "Data Validation Center - AI Closed"
 - [x] Implement "Migration Pipeline Results (High Contrast)"
+- [x] Implement "Processing Data - Loading State"
+- [x] Implement "Admin Rule Hub - Optimized Layout"
+- [x] Implement "Admin Rule Hub - Final Branding Sync" (AI chat)
 - [x] Split repo into `frontend/` + `backend/`
-- [ ] Implement remaining Stitch screens (Mapping Hub, Processing, Admin Rule Hub, etc.)
+- [ ] Implement remaining Stitch screens (Mapping Hub / Analysis, etc.)
+- [ ] Gate admin vs user via backend roles
 - [ ] Wire remaining workspace screens to backend
 - [ ] Ship production-ready migration validator
 
@@ -72,6 +77,9 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 | Validation | `6e7ea4a050254afab8f3a107f6d66d2d` — AI Closed (current) |
 | Validation (prior) | `7c9bd36a84f044e19748431f90bd9fac` — Cleaned Header |
 | Pipeline Results | `aa1559614bba47afb8fb4705fc95d2e7` — High Contrast |
+| Processing Loading | `c1aeb12b3ae34741b513a332c1323bd2` — Loading State |
+| Admin Rule Hub | `e489784146424ff6a68af939e47a1fa2` — Final Branding Sync (current; AI chat) |
+| Admin Rule Hub (prior) | `ee124e3b0db44b29a6785c7fb053c427` — Optimized Layout |
 | Typical canvas | Desktop ~2560×2048 |
 
 ### Design theme notes
@@ -84,6 +92,8 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 - **Register CTA:** `brand-blue`; **Sign In CTA:** `primary-container` + arrow
 - **CSS utilities:** `.glass-panel` (auth), `.workspace-glass`, `.upload-zone`, `.drop-zone`, `.assistant-panel`
 - **Validation AI Closed:** main content uses full width beside sidebar; **Suggest via AI** opens the assistant rail
+- **Processing flow:** Staging Process Data → `/processing` overlay (brand-blue progress) → `/reports`
+- **Admin surface:** separate `AdminSideNav` (Admin / Analysis); role gating deferred to backend
 
 ---
 
@@ -94,10 +104,12 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 | `/` | Redirect | → `/register` |
 | `/register` | Register | Auth glass card |
 | `/signin` | Sign In | Auth glass card (no system-status strip) |
-| `/staging` | Data Staging Center | Upload / preload–postload |
+| `/staging` | Data Staging Center | Upload / preload–postload; Process Data → `/processing` |
+| `/processing` | Processing Data | Loading overlay ≤2s, then `/reports` |
 | `/preview` | Data Preview | Preload / postload table tabs |
 | `/validation` | Data Validation Center | AI Closed; Suggest via AI opens rail |
 | `/reports` | Migration Pipeline Results | High Contrast metrics + issues table |
+| `/admin` | Admin Configuration Hub | Final Branding Sync; Suggest via AI opens chat |
 
 **Workspace nav wiring** (`frontend/lib/mock/workspace.ts`):
 
@@ -123,16 +135,20 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 │   │   ├── register/page.tsx
 │   │   ├── signin/page.tsx
 │   │   ├── staging/page.tsx
+│   │   ├── processing/page.tsx
 │   │   ├── preview/page.tsx
 │   │   ├── validation/page.tsx
-│   │   └── reports/page.tsx
+│   │   ├── reports/page.tsx
+│   │   └── admin/page.tsx
 │   ├── components/
 │   │   ├── auth/
 │   │   ├── layout/                 # SideNav, TopAppBar
 │   │   ├── staging/
+│   │   ├── processing/             # Processing Data loading overlay
 │   │   ├── preview/
 │   │   ├── validation/
 │   │   ├── pipeline/               # Migration Pipeline Results
+│   │   ├── admin/                  # Admin Rule Hub
 │   │   └── ui/
 │   ├── lib/
 │   │   ├── api/auth.ts             # Backend auth client
@@ -183,11 +199,13 @@ Validation uses the **AI Closed** Stitch screen (assistant rail closed by defaul
 | Stitch MCP as UI source | Done | Project `1119174885132838804` |
 | Register (`/register`) | Done | Perfect Sync; logo `h-36` |
 | Sign In (`/signin`) | Done | Dark Mode; logo `h-48`; no SystemStatus |
-| Staging (`/staging`) | Done | High Contrast upload hub |
+| Staging (`/staging`) | Done | High Contrast upload hub; Process Data → processing |
+| Processing (`/processing`) | Done | Loading overlay ≤2s → `/reports` |
 | Preview (`/preview`) | Done | Preload/postload horizontal tables |
 | Validation (`/validation`) | Done | AI Closed; assistant closed by default + Suggest via AI |
 | Pipeline Results (`/reports`) | Done | High Contrast metrics + issues table |
-| Mapping / Processing / Admin Rule Hub | Planned | Stitch screens exist; not built |
+| Admin Rule Hub (`/admin`) | Done | Final Branding Sync; AI chat via Suggest via AI |
+| Mapping / Analysis Hub | Planned | Stitch screens exist; Admin Analysis nav `#` |
 | Auth API (`frontend` ↔ `backend`) | Done | Register/login wired |
 | Workspace API integration | Planned | Staging/preview/validation/reports still mock |
 
@@ -282,6 +300,38 @@ PipelineResultsScreen
 Mock: `frontend/lib/mock/pipeline.ts`  
 Stitch: **Migration Pipeline Results (High Contrast)** (`aa1559614bba47afb8fb4705fc95d2e7`)
 
+### Processing Data (Loading State)
+
+```
+ProcessingScreen (client: auto-redirect → /reports)
+├── SideNav (active: upload) + staging backdrop
+├── TopAppBar (variant: staging)
+├── StagingPageHeader / UploadZoneCard / ValidationPipeline / TransformationDocuments
+└── ProcessingOverlay (modal: Uploaded → Cleaning → Validating)
+```
+
+Mock: `frontend/lib/mock/processing.ts`  
+Stitch: **Processing Data - Loading State** (`c1aeb12b3ae34741b513a332c1323bd2`)
+
+### Admin Rule Hub
+
+```
+AdminRuleHubScreen (client: assistantOpen)
+├── AdminSideNav (Admin / Analysis + Help / Logs)
+├── TopAppBar (variant: admin; status + notif; shrinks when assistant open)
+├── AdminAiAssistantPanel (closed by default; opens via Suggest via AI)
+└── main (md:ml-sidebar; xl:pr-assistant when open)
+    ├── AdminPageHeader (Apply Global Rules)
+    └── grid
+        ├── SourceDataRulesCard
+        ├── BusinessObjectCard
+        └── ValidationSelectionCard (Suggest via AI)
+```
+
+Mock: `frontend/lib/mock/admin.ts`  
+Stitch: **Admin Rule Hub - Final Branding Sync** (`e489784146424ff6a68af939e47a1fa2`)  
+Note: Admin vs user differentiation is role-based in backend (not wired yet).
+
 ---
 
 ## Environment & Tooling
@@ -322,10 +372,20 @@ Stitch: **Migration Pipeline Results (High Contrast)** (`aa1559614bba47afb8fb470
 | 2026-08-12 | Repo split into `frontend/` + `backend/` | Monorepo layout on `master` |
 | 2026-08-12 | Pipeline Results at `/reports` | Matches SideNav Reports active state in Stitch |
 | 2026-08-12 | Reports TopAppBar uses logo + mono status (no avatar) | Match Pipeline Results Stitch chrome |
+| 2026-08-12 | Process Data → `/processing` → `/reports` | Stitch loading overlay before pipeline results |
+| 2026-08-13 | Admin Rule Hub uses dedicated AdminSideNav | Stitch admin chrome differs from user workspace nav |
+| 2026-08-13 | Admin role gating deferred | Backend roles will distinguish admin vs user later |
+| 2026-08-13 | Admin Suggest via AI opens AdminAiAssistantPanel | Final Branding Sync chat rail; closed until clicked |
 
 ---
 
 ## Changelog
+
+### 2026-08-13
+
+- Implemented **Admin Rule Hub - Optimized Layout** at `/admin` (source rules, business object, validation + AI suggestions)
+- Synced Admin to **Final Branding Sync**: Help/Logs nav, status in top bar, **AdminAiAssistantPanel** opens from Suggest via AI
+- Added admin-only SideNav chrome; documented role-based admin/user split as future backend work
 
 ### 2026-08-12
 
@@ -341,14 +401,16 @@ Stitch: **Migration Pipeline Results (High Contrast)** (`aa1559614bba47afb8fb470
 - Moved workspace UI into monorepo `frontend/` (staging / preview / validation + shared chrome); preserved `frontend/lib/api/auth.ts`
 - Implemented **Migration Pipeline Results** at `/reports` from Stitch High Contrast (metrics bento + issues table)
 - Wired SideNav Reports → `/reports`
+- Implemented **Processing Data - Loading State** overlay at `/processing`; Process Data navigates staging → processing → reports
 - Refreshed this document to match the current codebase tree and routes
 
 ---
 
 ## Open Questions / TODO
 
-- [ ] Remaining Stitch screens: AI Analysis & Mapping Hub, Processing Data, Admin Rule & Validation Hub
-- [ ] Backend contracts for staging/preview/validation/reports
+- [ ] Remaining Stitch screens: AI Analysis & Mapping Hub
+- [ ] Backend role gating for admin vs user surfaces
+- [ ] Backend contracts for staging/preview/validation/reports/processing/admin
 - [ ] Deployment target (e.g. Vercel + API host)?
 
 ---

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { stagingCopy } from "@/lib/mock/staging";
 
@@ -13,13 +14,13 @@ export function StagingPageHeader() {
         </p>
       </div>
       <div className="flex gap-3">
-        <button
-          type="button"
+        <Link
+          href="/processing"
           className="flex items-center gap-2 rounded-DEFAULT bg-primary-container px-6 py-2 font-headline-sm text-headline-sm font-bold text-on-primary-container shadow-[0_0_20px_rgba(32,152,221,0.4)] transition-colors hover:bg-primary"
         >
           <Icon name="rocket_launch" />
           {stagingCopy.processLabel}
-        </button>
+        </Link>
       </div>
     </div>
   );

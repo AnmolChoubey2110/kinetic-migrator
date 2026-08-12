@@ -28,6 +28,7 @@
   --color-tertiary: #ffb871;
   --color-on-tertiary: #4a2800;
   --color-tertiary-container: #d07d11;
+  --color-on-tertiary-container: #412200;
   --color-tertiary-fixed-dim: #ffb871;
   --color-brand-blue: #008fd3;
   --color-error: #ffb4ab;
@@ -202,5 +203,47 @@
     font-feature-settings: "liga";
     -webkit-font-smoothing: antialiased;
     font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+
+  @keyframes slide-progress {
+    0% {
+      width: 20%;
+    }
+    100% {
+      width: 66%;
+    }
+  }
+
+  @keyframes pulse-icon {
+    0% {
+      box-shadow: 0 0 0 0 rgba(0, 143, 211, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 15px rgba(0, 143, 211, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(0, 143, 211, 0);
+    }
+  }
+
+  @keyframes shimmer-icon {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-slide-progress {
+    animation: slide-progress 3s ease-in-out infinite alternate;
+  }
+
+  .animate-pulse-icon {
+    animation: pulse-icon 2s infinite;
+  }
+
+  .animate-shimmer-icon {
+    animation: shimmer-icon 2.5s infinite linear;
   }
 }
