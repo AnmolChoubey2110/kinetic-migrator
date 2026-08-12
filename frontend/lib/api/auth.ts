@@ -1,10 +1,5 @@
-import {
-  authHeaders,
-  parseJson,
-  readApiError,
-  storeAuthToken as persistToken,
-} from "./http";
-import { API_BASE } from "./config";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:4000";
 
 export type AuthUser = {
   id: string;
@@ -13,6 +8,18 @@ export type AuthUser = {
   updated_at?: string;
 };
 
+type ApiErrorBody = {
+  error?: string;
+};
+
+async function parseJson<T>(response: Response): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new Error("Unexpected response from server");
+  }
+}
+
 export async function registerAccount(email: string, password: string) {
   const response = await fetch(`${API_BASE}/api/auth/register`, {
     method: "POST",
@@ -20,7 +27,7 @@ export async function registerAccount(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  const data = await parseJson<{ user?: AuthUser; error?: string }>(response);
+  const data = await parseJson<{ user?: AuthUser } & ApiErrorBody>(response);
 
   if (!response.ok) {
     throw new Error(data.error || "Registration failed");
@@ -36,11 +43,9 @@ export async function loginAccount(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  const data = await parseJson<{
-    token?: string;
-    user?: AuthUser;
-    error?: string;
-  }>(response);
+  const data = await parseJson<{ token?: string; user?: AuthUser } & ApiErrorBody>(
+    response,
+  );
 
   if (!response.ok) {
     throw new Error(data.error || "Login failed");
@@ -50,5 +55,7 @@ export async function loginAccount(email: string, password: string) {
 }
 
 export function storeAuthToken(token: string) {
-  persistToken(token);
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem("auth_token", token);
+  }
 }
