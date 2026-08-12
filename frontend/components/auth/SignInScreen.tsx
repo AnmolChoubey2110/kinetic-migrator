@@ -1,6 +1,5 @@
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { SignInCard } from "@/components/auth/SignInCard";
-import { SystemStatus } from "@/components/auth/SystemStatus";
 
 export function SignInScreen() {
   return (
@@ -8,7 +7,6 @@ export function SignInScreen() {
       <AuthBackground />
       <div className="relative z-10 w-full max-w-md p-section-padding">
         <SignInCard />
-        <SystemStatus />
       </div>
     </div>
   );

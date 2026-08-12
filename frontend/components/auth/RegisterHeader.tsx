@@ -7,9 +7,9 @@ export function RegisterHeader() {
       <Image
         src="/kinetic-logo.png"
         alt={registerCopy.logoAlt}
-        width={220}
-        height={64}
-        className="mb-2 h-16 w-auto"
+        width={500}
+        height={500}
+        className="mb-2 h-36 w-auto"
         priority
       />
       <h1 className="font-headline-md text-headline-md text-on-surface">
