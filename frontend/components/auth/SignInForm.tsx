@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { TextField } from "@/components/ui/TextField";
+import { loginAccount, storeAuthToken } from "@/lib/api/auth";
 import {
   mockSignInDefaults,
   signInCopy,
@@ -22,6 +23,9 @@ export function SignInForm({
 }: SignInFormProps) {
   const [values, setValues] = useState<SignInFormValues>(initialValues);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   function updateField<K extends keyof SignInFormValues>(
     key: K,
@@ -30,9 +34,28 @@ export function SignInForm({
     setValues((current) => ({ ...current, [key]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!values.email.trim() || !values.password) {
+      setError("Email and password are required");
+      return;
+    }
+
     onSubmit?.(values);
+    setSubmitting(true);
+
+    try {
+      const { token } = await loginAccount(values.email.trim(), values.password);
+      storeAuthToken(token);
+      setSuccess("Signed in successfully");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -63,12 +86,9 @@ export function SignInForm({
           autoComplete="current-password"
           glowVariant="primary"
           labelEnd={
-            <a
-              href="#"
-              className="font-body-sm text-body-sm text-primary transition-colors hover:text-primary-fixed"
-            >
+            <span className="font-body-sm text-body-sm text-primary">
               {signInCopy.forgotPassword}
-            </a>
+            </span>
           }
           endAdornment={
             <button
@@ -86,8 +106,25 @@ export function SignInForm({
         />
       </div>
 
-      <Button type="submit" fullWidth variant="primary" className="mt-2">
-        {signInCopy.submitLabel}
+      {error ? (
+        <p className="font-body-sm text-body-sm text-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="font-body-sm text-body-sm text-status-online" role="status">
+          {success}
+        </p>
+      ) : null}
+
+      <Button
+        type="submit"
+        fullWidth
+        variant="primary"
+        className="mt-2"
+        disabled={submitting}
+      >
+        {submitting ? "Signing in…" : signInCopy.submitLabel}
         <Icon name="arrow_forward" className="text-[20px]" />
       </Button>
     </form>

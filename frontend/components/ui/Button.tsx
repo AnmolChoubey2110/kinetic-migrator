@@ -21,12 +21,14 @@ export function Button({
   variant = "brand",
   className = "",
   type = "button",
+  disabled = false,
   ...buttonProps
 }: ButtonProps) {
   return (
     <button
       type={type}
-      className={`flex items-center justify-center gap-2 rounded-DEFAULT py-3 font-headline-sm text-headline-sm font-semibold transition-colors duration-200 ${
+      disabled={disabled}
+      className={`relative z-10 flex cursor-pointer items-center justify-center gap-2 rounded-DEFAULT py-3 font-headline-sm text-headline-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
         variantClasses[variant]
       } ${fullWidth ? "w-full" : ""} ${className}`}
       {...buttonProps}

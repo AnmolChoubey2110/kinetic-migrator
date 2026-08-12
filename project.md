@@ -3,15 +3,15 @@
 Living document for this project. Update this file as features, decisions, and architecture change.
 
 **Last updated:** 2026-08-12  
-**Status:** UI implementation in progress  
-**Package name:** `cursor-final`  
+**Status:** Frontend/backend split + auth API scaffolded  
+**Package name:** `cursor-final` (frontend) / `kinetic-migrator-backend`  
 **Product:** Kinetic Migrator (SAP Migration Smart Validator)
 
 ---
 
 ## Summary
 
-Next.js application for **Kinetic Migrator / SAP Migration Smart Validator**. UI is driven by the Stitch project as the source of truth. Auth screens implemented: Register and Sign In.
+Monorepo for **Kinetic Migrator / SAP Migration Smart Validator**. UI lives in `frontend/` (Next.js, Stitch-driven). Auth API lives in `backend/` (Node.js + Express + PostgreSQL + JWT). Auth screens implemented: Register and Sign In (still mock-wired in the UI).
 
 ---
 
@@ -21,8 +21,10 @@ Next.js application for **Kinetic Migrator / SAP Migration Smart Validator**. UI
 - [x] Connect Stitch MCP and use it as UI source of truth
 - [x] Implement "Kinetic Migrator - Register (Perfect Sync)" screen
 - [x] Implement "Kinetic Migrator - Sign In (Dark Mode)" screen
+- [x] Split repo into `frontend/` + `backend/`
+- [x] Scaffold Express auth (register, login, JWT middleware, user schema)
+- [ ] Wire frontend forms to Express auth API
 - [ ] Implement remaining Stitch screens
-- [ ] Wire FastAPI backend (not yet)
 - [ ] Ship production-ready migration validator
 
 ---
@@ -31,17 +33,18 @@ Next.js application for **Kinetic Migrator / SAP Migration Smart Validator**. UI
 
 | Area | Choice | Notes |
 |------|--------|--------|
-| Framework | Next.js `16.3.0` | App Router |
-| Language | TypeScript `^5` | Strict typing via `tsconfig.json` |
+| Framework | Next.js `16.3.0` | App Router under `frontend/` |
+| Language | TypeScript `^5` | Strict typing via `frontend/tsconfig.json` |
 | UI | React `19.2.8` | |
 | Styling | Tailwind CSS `^4` | Design tokens from Stitch |
 | Fonts | IBM Plex Sans, IBM Plex Mono | From Stitch screen + design system |
 | Icons | Material Symbols Outlined | Matches Stitch HTML |
 | Linting | ESLint `^9` + `eslint-config-next` | |
-| Package manager | npm | `package-lock.json` present |
-| Project layout | No `src/` | Routes under `app/`, UI under `components/` |
+| Package manager | npm | Separate lockfiles in `frontend/` and `backend/` |
+| Project layout | `frontend/` + `backend/` | UI under `frontend/` (no `src/`); API under `backend/src/` |
 | Design source | Stitch MCP | Project: SAP Migration Smart Validator |
-| Backend | FastAPI | **Not connected yet** — mock data only |
+| Backend | Node.js + Express | PostgreSQL, bcryptjs, JWT |
+| Database | PostgreSQL | Schema in `backend/sql/schema.sql` |
 
 ---
 
@@ -73,43 +76,31 @@ Next.js application for **Kinetic Migrator / SAP Migration Smart Validator**. UI
 
 ```
 .
-├── app/
-│   ├── globals.css              # Stitch design tokens + glass utilities
-│   ├── layout.tsx               # IBM Plex fonts + Material Symbols
-│   ├── page.tsx                 # Redirects to /register
-│   ├── register/
-│   │   └── page.tsx             # Register route (thin page shell)
-│   └── signin/
-│       └── page.tsx             # Sign In route (thin page shell)
-├── components/
-│   ├── auth/
-│   │   ├── AuthBackground.tsx   # Ambient blur orbs (shared)
-│   │   ├── RegisterCard.tsx
-│   │   ├── RegisterFooter.tsx
-│   │   ├── RegisterForm.tsx
-│   │   ├── RegisterHeader.tsx
-│   │   ├── RegisterScreen.tsx
-│   │   ├── SignInCard.tsx
-│   │   ├── SignInFooter.tsx
-│   │   ├── SignInForm.tsx
-│   │   ├── SignInHeader.tsx
-│   │   ├── SignInScreen.tsx
-│   │   └── SystemStatus.tsx     # Online status under Sign In card
-│   └── ui/
-│       ├── Button.tsx           # variants: brand | primary
-│       ├── Checkbox.tsx
-│       ├── GlassPanel.tsx
-│       ├── Icon.tsx
-│       └── TextField.tsx        # labelEnd, endAdornment, glowVariant
-├── lib/
-│   └── mock/
-│       ├── register.ts
-│       └── signin.ts
-├── public/
-│   └── kinetic-logo.png
-├── .cursor/
-│   └── mcp.json
-├── package.json
+├── frontend/
+│   ├── app/
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── page.tsx                 # Redirects to /register
+│   │   ├── register/page.tsx
+│   │   └── signin/page.tsx
+│   ├── components/
+│   │   ├── auth/                    # Register + Sign In screens
+│   │   └── ui/                      # Button, Checkbox, GlassPanel, Icon, TextField
+│   ├── lib/mock/
+│   ├── public/
+│   ├── package.json
+│   └── tsconfig.json                # `@/*` → frontend root
+├── backend/
+│   ├── src/
+│   │   ├── index.js
+│   │   ├── db.js
+│   │   ├── routes/auth.js           # register, login, me
+│   │   ├── middleware/auth.js       # JWT Bearer guard
+│   │   └── models/user.js
+│   ├── sql/schema.sql
+│   ├── .env.example
+│   └── package.json
+├── .cursor/skills/multitask/
 ├── project.md
 └── README.md
 ```
@@ -118,23 +109,32 @@ Next.js application for **Kinetic Migrator / SAP Migration Smart Validator**. UI
 
 ## Scripts
 
+### Frontend (`cd frontend`)
+
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start local dev server (http://localhost:3000) |
+| `npm run dev` | Start Next.js (http://localhost:3000) |
 | `npm run build` | Production build |
 | `npm run start` | Run production server |
 | `npm run lint` | Run ESLint |
+
+### Backend (`cd backend`)
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Express with `--watch` (http://localhost:4000) |
+| `npm start` | Production start |
 
 ---
 
 ## Architecture & Conventions
 
-- **Routing:** Next.js App Router (`app/`)
-- **Path alias:** `@/*` → project root
-- **No `src` directory**
+- **Routing:** Next.js App Router (`frontend/app/`)
+- **Path alias:** `@/*` → `frontend/` root
+- **No `src` directory** in the frontend
 - **UI source of truth:** Stitch screens via MCP — match layout, typography, colors, spacing, and dimensions; do not invent extra UI
 - **Page shells stay thin:** compose screens from `components/`; avoid putting full UI in `page.tsx`
-- **Data:** mock modules under `lib/mock/` until FastAPI is connected
+- **Auth API:** Express under `backend/`; UI forms still use `lib/mock/` until wired
 - Prefer updating this file when adding screens, dependencies, or structural changes
 
 ---
@@ -147,8 +147,10 @@ Next.js application for **Kinetic Migrator / SAP Migration Smart Validator**. UI
 | Stitch MCP as UI source | Done | Project linked |
 | Register screen (`/register`) | Done | Perfect Sync screen from Stitch |
 | Sign In screen (`/signin`) | Done | Dark Mode screen from Stitch |
+| `frontend/` + `backend/` split | Done | Via `/multitask` |
+| Express auth API | Done | register, login, JWT `/me`, PostgreSQL users |
+| Wire UI forms to auth API | Planned | Mock submit handlers remain |
 | Other Stitch screens | Planned | Not invented yet |
-| FastAPI integration | Blocked | Explicitly deferred |
 
 ---
 
@@ -166,7 +168,7 @@ RegisterScreen
     └── RegisterFooter (→ /signin)
 ```
 
-Mock data: `lib/mock/register.ts`. Submit handler is local-only (no API).
+Mock data: `frontend/lib/mock/register.ts`. Submit handler is local-only (API exists under `backend/`).
 
 ---
 
@@ -186,7 +188,7 @@ SignInScreen
     └── SystemStatus
 ```
 
-Mock data: `lib/mock/signin.ts`. Submit handler is local-only (no API).
+Mock data: `frontend/lib/mock/signin.ts`. Submit handler is local-only (API exists under `backend/`).
 
 ---
 
@@ -199,8 +201,9 @@ Mock data: `lib/mock/signin.ts`. Submit handler is local-only (no API).
 
 ### Local notes
 
-- Dev server uses port **3000** by default
+- Frontend uses port **3000**; backend uses port **4000**
 - `/` redirects to `/register`
+- Copy `backend/.env.example` → `backend/.env` and apply `backend/sql/schema.sql` before starting the API
 
 ---
 
@@ -217,6 +220,7 @@ Mock data: `lib/mock/signin.ts`. Submit handler is local-only (no API).
 | 2026-08-12 | Use Stitch dark tokens for Register (not light design.md defaults) | Screen HTML is dark-mode Perfect Sync |
 | 2026-08-12 | Extend shared Button/TextField instead of duplicating | Sign In needs variants; Register stays compatible |
 | 2026-08-12 | Sign In glow uses primary `#90cdff` via `glow-input-primary` | Matches Sign In Stitch HTML without changing Register glow |
+| 2026-08-12 | Split into `frontend/` + Express/PostgreSQL `backend/` | `/multitask` skill; Node auth instead of FastAPI |
 
 ---
 
@@ -232,14 +236,15 @@ Mock data: `lib/mock/signin.ts`. Submit handler is local-only (no API).
 - Inspected and implemented **Kinetic Migrator - Sign In (Dark Mode)** at `/signin`
 - Extended shared `Button` (variants) and `TextField` (labelEnd, endAdornment, glowVariant)
 - Linked Register ↔ Sign In footers
+- Moved UI into `frontend/`; added Express + PostgreSQL auth API under `backend/` (register, login, JWT middleware)
 
 ---
 
 ## Open Questions / TODO
 
 - [ ] Implement next Stitch screens (dashboard, staging, mapping, etc.) as needed
-- [ ] FastAPI contracts for auth
-- [ ] Deployment target (e.g. Vercel)?
+- [ ] Wire Register / Sign In forms to `POST /api/auth/*`
+- [ ] Deployment target (e.g. Vercel + separate API host)?
 
 ---
 
