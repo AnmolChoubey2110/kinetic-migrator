@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS validation_rules (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT validation_rules_business_object_check
-    CHECK (business_object IN ('MM', 'PO', 'GL Account', 'BP'))
+    CHECK (business_object IN ('MM', 'PO', 'GL Account', 'BP', 'SO'))
 );
 
 CREATE INDEX IF NOT EXISTS validation_rules_business_object_idx

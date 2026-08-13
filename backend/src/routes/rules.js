@@ -86,7 +86,7 @@ router.post(
         rules,
         persisted: false,
         message:
-          "Review predefined + AI rules. Save stores only Business Object, field names, and AI rules.",
+          "Review predefined + AI rules. Save stores Business Object, field names, key flags (X = primary key), and AI rules.",
       });
     } catch (err) {
       if (err?.status === 401 || err?.status === 403) {
@@ -99,8 +99,8 @@ router.post(
 );
 
 /**
- * Persist ONLY: businessObject + fieldName + AI rules.
- * Excel metadata / predefined rules are not stored.
+ * Persist: businessObject + fieldName + key (X = PK) + AI rules.
+ * Predefined rules and other Excel metadata are not stored.
  */
 router.post("/save", requireAuth, async (req, res, next) => {
   try {
@@ -134,7 +134,7 @@ router.post("/save", requireAuth, async (req, res, next) => {
     });
 
     return res.status(201).json({
-      message: "Saved Business Object + field names + AI rules",
+      message: "Saved Business Object + field names + key flags + AI rules",
       ruleSet: saved,
     });
   } catch (err) {

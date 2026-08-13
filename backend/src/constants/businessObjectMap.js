@@ -1,19 +1,12 @@
 /**
- * Maps SAP detector labels (MATERIAL_MASTER, …) to validation_rules
- * business_object values (MM, PO, …).
+ * Maps SAP detector labels to validation_rules.business_object values.
  */
 export const DETECTOR_TO_RULES_BO = Object.freeze({
   MATERIAL_MASTER: "MM",
   PURCHASE_ORDER: "PO",
   GL_ACCOUNT: "GL Account",
   BUSINESS_PARTNER: "BP",
-});
-
-export const RULES_BO_TO_DETECTOR = Object.freeze({
-  MM: "MATERIAL_MASTER",
-  PO: "PURCHASE_ORDER",
-  "GL Account": "GL_ACCOUNT",
-  BP: "BUSINESS_PARTNER",
+  SALES_ORDER: "SO",
 });
 
 export function mapDetectorToRulesBusinessObject(detectorLabel) {

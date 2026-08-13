@@ -1,8 +1,8 @@
 /**
  * Evaluates validation rules against preload rows.
  * - Applies stored AI rules from validation_rules
- * - Also applies application predefined checks (null/empty + duplicate),
- *   including key-field uniqueness for identifiers like MATERIAL_NUMBER
+ * - Also applies application predefined checks (null/empty + duplicate)
+ * - Primary keys come only from stored field.key === "X" (not name heuristics)
  */
 
 import {
@@ -13,14 +13,6 @@ import {
 
 const MAX_AFFECTED_ROWS_SAMPLE = 25;
 const MAX_SAMPLE_VALUES = 8;
-
-/** Known primary / business-key columns per rules business object */
-const KEY_FIELD_HINTS = Object.freeze({
-  MM: ["MATERIAL_NUMBER", "MATNR", "MATERIALNUMBER"],
-  PO: ["PO_NUMBER", "EBELN", "PURCHASE_ORDER", "PONUMBER"],
-  "GL Account": ["GL_ACCOUNT", "SAKNR", "ACCOUNT_NUMBER", "GLACCOUNT"],
-  BP: ["PARTNER", "BUSINESS_PARTNER", "BP_NUMBER", "LIFNR", "KUNNR"],
-});
 
 function normalizeKey(value) {
   return String(value ?? "")
@@ -86,18 +78,9 @@ function ruleText(rule) {
     .toLowerCase();
 }
 
-function isKeyFieldName(fieldName, businessObject) {
-  const hints = KEY_FIELD_HINTS[businessObject] || [
-    ...KEY_FIELD_HINTS.MM,
-    ...KEY_FIELD_HINTS.PO,
-    ...KEY_FIELD_HINTS["GL Account"],
-    ...KEY_FIELD_HINTS.BP,
-  ];
-  const target = normalizeKey(fieldName);
-  return hints.some((hint) => {
-    const h = normalizeKey(hint);
-    return target === h || target.includes(h) || h.includes(target);
-  });
+function fieldKeyFlag(field) {
+  const raw = field?.key ?? field?.metadata?.key ?? "";
+  return String(raw).toUpperCase() === "X" ? "X" : "";
 }
 
 function isDuplicateRule(rule) {
@@ -275,37 +258,36 @@ function hasRule(rules, predicate) {
 }
 
 /**
- * Merge AI rules with predefined Trim / Null / Duplicate checks.
- * Key fields (e.g. MATERIAL_NUMBER for MM) get UNIQUE_REQUIRED duplicate severity=error.
+ * Merge AI rules with predefined Null / Duplicate checks.
+ * Duplicate Check is injected only when field.key === "X".
  */
-function enrichFieldsWithPredefined(fields, businessObject, columnIndex) {
+function enrichFieldsWithPredefined(fields) {
   const byName = new Map();
 
   for (const field of fields || []) {
     const fieldName = String(field?.fieldName || "").trim();
     if (!fieldName) continue;
+    const key = fieldKeyFlag(field);
+    let rules = Array.isArray(field.rules) ? [...field.rules] : [];
+    if (key !== "X") {
+      rules = rules.filter((r) => !isDuplicateRule(r));
+    }
     byName.set(normalizeKey(fieldName), {
       fieldName,
-      rules: Array.isArray(field.rules) ? [...field.rules] : [],
+      key,
+      rules,
     });
   }
 
-  // Ensure known key columns present in the file are evaluated even if missing from AI rules
-  const hints = KEY_FIELD_HINTS[businessObject] || KEY_FIELD_HINTS.MM;
-  for (const hint of hints) {
-    const column = resolveColumn(hint, columnIndex);
-    if (!column) continue;
-    const key = normalizeKey(column);
-    if (!byName.has(key) && !byName.has(normalizeKey(hint))) {
-      byName.set(normalizeKey(hint), { fieldName: hint, rules: [] });
-    }
-  }
-
   return [...byName.values()].map((field) => {
-    const key = isKeyFieldName(field.fieldName, businessObject);
+    const isKey = field.key === "X";
     const predefined = buildPredefinedRulesForField({
       fieldName: field.fieldName,
-      key: key ? "X" : "",
+      key: field.key,
+    }).filter((rule) => {
+      if (rule.ruleId === COMMON_RULE_IDS.TRIM) return false;
+      if (rule.ruleId === COMMON_RULE_IDS.DUPLICATE && !isKey) return false;
+      return true;
     });
 
     const merged = [...field.rules];
@@ -322,7 +304,7 @@ function enrichFieldsWithPredefined(fields, businessObject, columnIndex) {
       if (!already) merged.push(rule);
     }
 
-    return { ...field, rules: merged, _isKey: key };
+    return { ...field, rules: merged, _isKey: isKey };
   });
 }
 
@@ -368,11 +350,7 @@ export function evaluateValidationRules(rows, rulesPayload) {
   const data = Array.isArray(rows) ? rows : [];
   const businessObject = extractBusinessObject(rulesPayload);
   const columnIndex = buildColumnIndex(data);
-  const fields = enrichFieldsWithPredefined(
-    extractFields(rulesPayload),
-    businessObject,
-    columnIndex,
-  );
+  const fields = enrichFieldsWithPredefined(extractFields(rulesPayload));
   const findings = [];
   const unmatchedFields = [];
   let rulesChecked = 0;
@@ -392,6 +370,8 @@ export function evaluateValidationRules(rows, rulesPayload) {
       rulesChecked += 1;
 
       if (isDuplicateRule(rule)) {
+        // Duplicate Check only for primary keys (key = "X")
+        if (field.key !== "X" && !field._isKey) continue;
         const { affectedRowNumbers, samples } = collectDuplicateRowNumbers(
           data,
           column,

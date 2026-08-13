@@ -69,9 +69,15 @@ export function assembleFieldRules(businessObject, fields, aiByField = []) {
   };
 }
 
+function persistKeyFlag(field) {
+  const raw = field?.key ?? field?.metadata?.key ?? "";
+  return String(raw).toUpperCase() === "X" ? "X" : "";
+}
+
 /**
- * DB persistence payload: Business Object + fieldName + AI rules only.
- * Does NOT include Excel metadata or predefined rules.
+ * DB persistence payload: Business Object + fieldName + key flag + AI rules.
+ * Does NOT include predefined rules or other Excel metadata.
+ * key = "X" marks a primary/business key; anything else is non-key.
  */
 export function toPersistableAiRules(businessObject, rules) {
   const normalized = normalizeRulesForPersistence(businessObject, rules);
@@ -85,6 +91,7 @@ export function toPersistableAiRules(businessObject, rules) {
         );
         return {
           fieldName: field.fieldName,
+          key: persistKeyFlag(field),
           rules: aiOnly.map((rule) => ({
             ruleName: rule.ruleName,
             source: RULE_SOURCE.AI,
@@ -106,10 +113,17 @@ export function toPersistableAiRules(businessObject, rules) {
 export function normalizeRulesForPersistence(businessObject, rules) {
   if (rules?.fields && Array.isArray(rules.fields)) {
     const fields = rules.fields.map((field) => {
+      const key = persistKeyFlag(field);
+      const metadata = {
+        ...(field.metadata || { fieldName: field.fieldName }),
+        key,
+      };
+
       if (Array.isArray(field.rules)) {
         return {
           fieldName: field.fieldName,
-          metadata: field.metadata || { fieldName: field.fieldName },
+          key,
+          metadata,
           rules: field.rules.map((rule, index) => ({
             ruleName: rule.ruleName || rule.rule || `Rule ${index + 1}`,
             source:
@@ -136,7 +150,8 @@ export function normalizeRulesForPersistence(businessObject, rules) {
 
       return {
         fieldName: field.fieldName,
-        metadata: field.metadata || { fieldName: field.fieldName },
+        key,
+        metadata,
         rules: [...predefined, ...ai],
       };
     });
