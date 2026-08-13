@@ -14,6 +14,8 @@ import {
   createFileUpload,
   findUploadByBatchAndType,
   findUploadWithParsedData,
+  findUploadWithParsedDataById,
+  findUploadsByBatchId,
 } from "../models/fileUpload.js";
 import {
   createProcessingReport,
@@ -596,6 +598,88 @@ router.post(
           // ignore secondary persistence errors
         }
       }
+      return next(err);
+    }
+  },
+);
+
+router.get(
+  "/:batchId/files",
+  requireAuth,
+  requireRole("normal_user", "admin"),
+  async (req, res, next) => {
+    try {
+      const batchId = String(req.params.batchId || "").trim();
+      if (!UUID_RE.test(batchId)) {
+        return res.status(400).json({ error: "Invalid batch_id" });
+      }
+
+      const batch = await resolveAccessibleBatch(req, batchId);
+      if (!batch) {
+        return res.status(404).json({ error: "Batch not found" });
+      }
+
+      const uploads = await findUploadsByBatchId(db, { batchId });
+      return res.status(200).json({
+        batch_id: batchId,
+        files: uploads.map((row) => ({
+          id: row.id,
+          file_type: row.file_type,
+          original_filename: row.original_filename,
+          uploaded_at: row.uploaded_at,
+          row_count: Number(row.row_count) || 0,
+        })),
+      });
+    } catch (err) {
+      return next(err);
+    }
+  },
+);
+
+router.get(
+  "/:batchId/files/:uploadId",
+  requireAuth,
+  requireRole("normal_user", "admin"),
+  async (req, res, next) => {
+    try {
+      const batchId = String(req.params.batchId || "").trim();
+      const uploadId = String(req.params.uploadId || "").trim();
+      if (!UUID_RE.test(batchId) || !UUID_RE.test(uploadId)) {
+        return res.status(400).json({ error: "Invalid batch_id or upload id" });
+      }
+
+      const batch = await resolveAccessibleBatch(req, batchId);
+      if (!batch) {
+        return res.status(404).json({ error: "Batch not found" });
+      }
+
+      const upload = await findUploadWithParsedDataById(db, {
+        uploadId,
+        batchId,
+      });
+      if (!upload) {
+        return res.status(404).json({ error: "Upload not found for this batch" });
+      }
+
+      const rows = Array.isArray(upload.parsed_data) ? upload.parsed_data : [];
+      const columns =
+        rows.length > 0 && rows[0] && typeof rows[0] === "object"
+          ? Object.keys(rows[0])
+          : [];
+
+      return res.status(200).json({
+        batch_id: batchId,
+        file: {
+          id: upload.id,
+          file_type: upload.file_type,
+          original_filename: upload.original_filename,
+          uploaded_at: upload.uploaded_at,
+          row_count: rows.length,
+          columns,
+          rows,
+        },
+      });
+    } catch (err) {
       return next(err);
     }
   },

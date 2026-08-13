@@ -167,9 +167,9 @@ export function AiAssistantPanel({
             business object, saved validation rules, and current findings.
           </div>
         ) : (
-          messages.map((entry) => (
+          messages.map((entry, index) => (
             <div
-              key={entry.id}
+              key={entry.id || `msg-${index}`}
               className={`flex gap-3 ${entry.role === "user" ? "flex-row-reverse" : ""}`}
             >
               <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-tertiary-container/20 text-tertiary">

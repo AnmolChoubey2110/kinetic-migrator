@@ -241,6 +241,8 @@ router.post(
       );
 
       const welcome = {
+        id: `welcome-${Date.now()}`,
+        at: new Date().toISOString(),
         role: "assistant",
         content: `I analyzed ${req.file.originalname} as ${detection.businessObject} (ruleset ${rulesBusinessObject}). Found ${evaluation.findings.length} rule issue(s). Ask me about a finding, or say e.g. "fix the material length issue" — I'll show a preview before applying anything.`,
       };
