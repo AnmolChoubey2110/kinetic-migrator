@@ -14,6 +14,7 @@ const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 const BCRYPT_ROUNDS = 12;
+const ALLOWED_ROLES = new Set(["admin", "normal_user"]);
 
 function normalizeEmail(email) {
   return String(email ?? "")
@@ -52,8 +53,13 @@ router.post("/register", async (req, res, next) => {
   try {
     const email = normalizeEmail(req.body?.email);
     const password = req.body?.password;
+    const requestedRole = String(req.body?.role ?? "normal_user").trim();
+    const role = ALLOWED_ROLES.has(requestedRole) ? requestedRole : null;
 
     const errors = validateCredentials(email, password);
+    if (!role) {
+      errors.push('role must be "admin" or "normal_user"');
+    }
     if (errors.length > 0) {
       return res.status(400).json({ error: errors.join("; ") });
     }
@@ -64,7 +70,7 @@ router.post("/register", async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const user = await createUser({ email, passwordHash });
+    const user = await createUser({ email, passwordHash, role });
 
     return res.status(201).json({ user: toPublicUser(user) });
   } catch (err) {

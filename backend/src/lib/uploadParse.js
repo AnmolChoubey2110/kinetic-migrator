@@ -47,32 +47,56 @@ function normalizeRows(rows) {
   });
 }
 
+function parseCsvText(content) {
+  const records = parseCsv(content, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+    relax_column_count: true,
+  });
+  return normalizeRows(records);
+}
+
+function parseXlsxWorkbook(workbook) {
+  const sheetName = workbook.SheetNames[0];
+  if (!sheetName) {
+    return [];
+  }
+  const sheet = workbook.Sheets[sheetName];
+  const records = XLSX.utils.sheet_to_json(sheet, {
+    defval: null,
+    raw: false,
+  });
+  return normalizeRows(records);
+}
+
+export function parseUploadedBuffer(buffer, originalFilename) {
+  const ext = getFileExtension(originalFilename);
+
+  if (ext === ".csv") {
+    return parseCsvText(Buffer.from(buffer).toString("utf8"));
+  }
+
+  if (ext === ".xlsx") {
+    const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+    return parseXlsxWorkbook(workbook);
+  }
+
+  const err = new Error("Only .csv and .xlsx files are allowed");
+  err.status = 400;
+  throw err;
+}
+
 export function parseUploadedFile(filePath, originalFilename) {
   const ext = getFileExtension(originalFilename);
 
   if (ext === ".csv") {
-    const content = fs.readFileSync(filePath, "utf8");
-    const records = parseCsv(content, {
-      columns: true,
-      skip_empty_lines: true,
-      trim: true,
-      relax_column_count: true,
-    });
-    return normalizeRows(records);
+    return parseCsvText(fs.readFileSync(filePath, "utf8"));
   }
 
   if (ext === ".xlsx") {
     const workbook = XLSX.readFile(filePath, { cellDates: true });
-    const sheetName = workbook.SheetNames[0];
-    if (!sheetName) {
-      return [];
-    }
-    const sheet = workbook.Sheets[sheetName];
-    const records = XLSX.utils.sheet_to_json(sheet, {
-      defval: null,
-      raw: false,
-    });
-    return normalizeRows(records);
+    return parseXlsxWorkbook(workbook);
   }
 
   const err = new Error("Only .csv and .xlsx files are allowed");

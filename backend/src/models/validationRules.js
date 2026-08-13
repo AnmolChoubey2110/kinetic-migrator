@@ -49,3 +49,16 @@ export async function findValidationRulesById(id) {
   );
   return result.rows[0] ?? null;
 }
+
+/** Latest saved rule set for a business object (MM | PO | GL Account | BP). */
+export async function findLatestValidationRulesByBusinessObject(businessObject) {
+  const result = await query(
+    `SELECT id, business_object, rules, created_by, created_at, updated_at
+     FROM validation_rules
+     WHERE business_object = $1
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [businessObject],
+  );
+  return result.rows[0] ?? null;
+}
