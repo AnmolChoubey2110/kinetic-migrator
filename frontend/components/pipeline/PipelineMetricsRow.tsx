@@ -1,5 +1,7 @@
+"use client";
+
 import { Icon } from "@/components/ui/Icon";
-import { pipelineMetrics, type PipelineMetric } from "@/lib/mock/pipeline";
+import type { PipelineMetric } from "@/lib/mock/pipeline";
 
 function MetricIcon({
   name,
@@ -132,10 +134,14 @@ function MetricCard({ metric }: { metric: PipelineMetric }) {
   );
 }
 
-export function PipelineMetricsRow() {
+type PipelineMetricsRowProps = {
+  metrics: PipelineMetric[];
+};
+
+export function PipelineMetricsRow({ metrics }: PipelineMetricsRowProps) {
   return (
     <div className="mb-container-margin grid grid-cols-1 gap-grid-gutter md:grid-cols-2 lg:grid-cols-4">
-      {pipelineMetrics.map((metric) => (
+      {metrics.map((metric) => (
         <MetricCard key={metric.id} metric={metric} />
       ))}
     </div>

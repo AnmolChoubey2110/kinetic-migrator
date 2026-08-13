@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { AdminRuleHubScreen } from "@/components/admin/AdminRuleHubScreen";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
-  return <AdminRuleHubScreen />;
+  return (
+    <RequireAuth roles={["admin"]}>
+      <AdminRuleHubScreen />
+    </RequireAuth>
+  );
 }

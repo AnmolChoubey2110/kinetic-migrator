@@ -1,10 +1,15 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { TextField } from "@/components/ui/TextField";
-import { loginAccount, storeAuthToken } from "@/lib/api/auth";
+import {
+  homePathForRole,
+  loginAccount,
+  storeAuthSession,
+} from "@/lib/api/auth";
 import {
   mockSignInDefaults,
   signInCopy,
@@ -21,6 +26,7 @@ export function SignInForm({
   initialValues = mockSignInDefaults,
   onSubmit,
 }: SignInFormProps) {
+  const router = useRouter();
   const [values, setValues] = useState<SignInFormValues>(initialValues);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +54,13 @@ export function SignInForm({
     setSubmitting(true);
 
     try {
-      const { token } = await loginAccount(values.email.trim(), values.password);
-      storeAuthToken(token);
+      const { token, user } = await loginAccount(
+        values.email.trim(),
+        values.password,
+      );
+      storeAuthSession(token, user);
       setSuccess("Signed in successfully");
+      router.push(homePathForRole(user.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

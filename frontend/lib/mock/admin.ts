@@ -106,12 +106,12 @@ export const sourceFieldRules: SourceFieldRule[] = [
   },
 ];
 
+/** IDs must match backend `/api/rules` BUSINESS_OBJECTS */
 export const businessObjectOptions: BusinessObjectOption[] = [
-  { id: "business-partner", label: "Business Partner" },
-  { id: "gl-account", label: "GL Account" },
-  { id: "material-master", label: "Material Master" },
-  { id: "purchase-order", label: "Purchase Order" },
-  { id: "sales-order", label: "Sales Order" },
+  { id: "MM", label: "Material Master (MM)" },
+  { id: "PO", label: "Purchase Order (PO)" },
+  { id: "GL Account", label: "GL Account" },
+  { id: "BP", label: "Business Partner (BP)" },
 ];
 
 export const validationToggles: ValidationToggle[] = [

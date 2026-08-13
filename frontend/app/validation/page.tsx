@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ValidationScreen } from "@/components/validation/ValidationScreen";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function ValidationPage() {
-  return <ValidationScreen />;
+  return (
+    <RequireAuth roles={["normal_user", "admin"]}>
+      <ValidationScreen />
+    </RequireAuth>
+  );
 }

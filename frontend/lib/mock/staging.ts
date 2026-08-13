@@ -68,8 +68,8 @@ export const uploadZones: UploadZoneConfig[] = [
     dropTitle: "Drag & Drop Target Definitions",
     dropHint: "or click to browse local files",
     formats: [
-      { label: ".json", icon: "data_object" },
       { label: ".csv", icon: "description" },
+      { label: ".xlsx", icon: "table" },
     ],
   },
 ];

@@ -1,17 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import {
   adminCopy,
   businessObjectOptions,
 } from "@/lib/mock/admin";
 
-export function BusinessObjectCard() {
-  const [selectedId, setSelectedId] = useState(
-    businessObjectOptions[0]?.id ?? "",
-  );
+type BusinessObjectCardProps = {
+  selectedId: string;
+  onSelect: (id: string) => void;
+  onConfirm?: () => void;
+  confirmLabel?: string;
+  confirming?: boolean;
+  disabled?: boolean;
+};
 
+export function BusinessObjectCard({
+  selectedId,
+  onSelect,
+  onConfirm,
+  confirmLabel = adminCopy.confirmSelectionLabel,
+  confirming = false,
+  disabled = false,
+}: BusinessObjectCardProps) {
   return (
     <div className="flex h-[500px] flex-col overflow-hidden rounded-xl border border-white/10 bg-surface/60 backdrop-blur-[20px]">
       <div className="flex items-center justify-between border-b border-white/5 bg-white/[0.02] p-5">
@@ -32,8 +43,9 @@ export function BusinessObjectCard() {
             <button
               key={option.id}
               type="button"
-              onClick={() => setSelectedId(option.id)}
-              className="group w-full cursor-pointer rounded-lg border border-white/5 bg-white/5 p-4 text-left transition-all hover:border-primary/30"
+              disabled={disabled}
+              onClick={() => onSelect(option.id)}
+              className="group w-full cursor-pointer rounded-lg border border-white/5 bg-white/5 p-4 text-left transition-all hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <div className="flex items-center gap-3">
                 <div
@@ -57,10 +69,12 @@ export function BusinessObjectCard() {
       <div className="flex justify-center border-t border-white/5 bg-surface-container-lowest/50 p-3">
         <button
           type="button"
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body-sm text-body-sm font-semibold text-on-primary transition-all hover:bg-primary-fixed"
+          disabled={disabled || !selectedId || confirming}
+          onClick={onConfirm}
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body-sm text-body-sm font-semibold text-on-primary transition-all hover:bg-primary-fixed disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Icon name="check_circle" className="text-[18px]" />
-          {adminCopy.confirmSelectionLabel}
+          {confirming ? "Generating…" : confirmLabel}
         </button>
       </div>
     </div>

@@ -79,11 +79,15 @@ function IssueRow({ issue }: { issue: PipelineIssue }) {
   );
 }
 
-export function PipelineIssuesTable() {
+export function PipelineIssuesTable({
+  issues = pipelineIssues,
+}: {
+  issues?: PipelineIssue[];
+}) {
   const [criticalOnly, setCriticalOnly] = useState(false);
   const rows = criticalOnly
-    ? pipelineIssues.filter((issue) => issue.severity === "critical")
-    : pipelineIssues;
+    ? issues.filter((issue) => issue.severity === "critical")
+    : issues;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface-container">
@@ -144,7 +148,7 @@ export function PipelineIssuesTable() {
         <span className="font-body-sm text-body-sm text-on-surface">
           {criticalOnly
             ? `Showing 1-${rows.length} of ${rows.length} issues`
-            : pipelineCopy.paginationLabel}
+            : `Showing 1-${rows.length} of ${issues.length} issues`}
         </span>
         <div className="flex gap-2">
           <button

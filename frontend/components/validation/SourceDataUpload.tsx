@@ -4,9 +4,24 @@ import { useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { validationCopy } from "@/lib/mock/validation";
 
-export function SourceDataUpload() {
+type SourceDataUploadProps = {
+  fileName?: string | null;
+  disabled?: boolean;
+  onFileSelected?: (file: File) => void;
+};
+
+export function SourceDataUpload({
+  fileName = null,
+  disabled = false,
+  onFileSelected,
+}: SourceDataUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+
+  function acceptFile(file: File | undefined | null) {
+    if (!file || disabled) return;
+    onFileSelected?.(file);
+  }
 
   return (
     <div className="workspace-glass flex flex-col gap-4 rounded-xl p-6 col-span-12 lg:col-span-8">
@@ -16,7 +31,7 @@ export function SourceDataUpload() {
       <div
         className={`drop-zone flex cursor-pointer flex-col items-center justify-center rounded-lg bg-surface-container-lowest/50 px-6 py-12 text-center transition-colors hover:bg-surface-container-low ${
           dragging ? "dragover" : ""
-        }`}
+        } ${disabled ? "pointer-events-none opacity-60" : ""}`}
         onClick={() => inputRef.current?.click()}
         onDragEnter={(event) => {
           event.preventDefault();
@@ -33,6 +48,7 @@ export function SourceDataUpload() {
         onDrop={(event) => {
           event.preventDefault();
           setDragging(false);
+          acceptFile(event.dataTransfer.files?.[0]);
         }}
         role="button"
         tabIndex={0}
@@ -48,10 +64,10 @@ export function SourceDataUpload() {
           className="mb-4 text-[48px] text-outline-variant"
         />
         <h4 className="mb-1 font-headline-sm text-headline-sm text-on-surface">
-          {validationCopy.dropTitle}
+          {fileName || validationCopy.dropTitle}
         </h4>
         <p className="mb-4 font-body-md text-body-md text-on-surface-variant">
-          {validationCopy.dropHint}
+          {fileName ? "Click to replace preload file" : validationCopy.dropHint}
         </p>
         <button
           type="button"
@@ -65,9 +81,11 @@ export function SourceDataUpload() {
         </button>
         <input
           ref={inputRef}
-          accept=".csv,.xlsx,.json"
+          accept=".csv,.xlsx"
           className="hidden"
           type="file"
+          disabled={disabled}
+          onChange={(event) => acceptFile(event.target.files?.[0])}
         />
       </div>
     </div>

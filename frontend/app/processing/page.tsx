@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { ProcessingScreen } from "@/components/processing/ProcessingScreen";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ProcessingPage() {
-  return <ProcessingScreen />;
+  return (
+    <RequireAuth roles={["normal_user"]}>
+      <ProcessingScreen />
+    </RequireAuth>
+  );
 }

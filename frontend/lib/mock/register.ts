@@ -1,8 +1,11 @@
+export type RegisterRole = "admin" | "normal_user";
+
 export type RegisterFormValues = {
   fullName: string;
   email: string;
   password: string;
   confirmPassword: string;
+  role: RegisterRole;
   agreeToTerms: boolean;
 };
 
@@ -20,6 +23,9 @@ export const registerCopy = {
   emailLabel: "Email Address",
   passwordLabel: "Password",
   confirmPasswordLabel: "Confirm Password",
+  roleLabel: "Account Role",
+  roleAdminLabel: "Admin — rules & configuration",
+  roleUserLabel: "Normal User — staging & comparisons",
   termsPrefix: "I agree to the",
   termsOfService: "Terms of Service",
   privacyPolicy: "Privacy Policy",
@@ -35,5 +41,6 @@ export const mockRegisterDefaults: RegisterFormValues = {
   email: "",
   password: "",
   confirmPassword: "",
+  role: "normal_user",
   agreeToTerms: false,
 };

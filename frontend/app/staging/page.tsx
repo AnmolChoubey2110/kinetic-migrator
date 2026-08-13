@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { StagingScreen } from "@/components/staging/StagingScreen";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function StagingPage() {
-  return <StagingScreen />;
+  return (
+    <RequireAuth roles={["normal_user"]}>
+      <StagingScreen />
+    </RequireAuth>
+  );
 }

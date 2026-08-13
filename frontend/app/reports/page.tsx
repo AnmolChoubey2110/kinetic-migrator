@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { PipelineResultsScreen } from "@/components/pipeline/PipelineResultsScreen";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function ReportsPage() {
-  return <PipelineResultsScreen />;
+  return (
+    <RequireAuth roles={["normal_user"]}>
+      <PipelineResultsScreen />
+    </RequireAuth>
+  );
 }
