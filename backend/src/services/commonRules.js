@@ -22,7 +22,7 @@ function isKeyField(field) {
 export function buildPredefinedRulesForField(field) {
   const key = isKeyField(field);
 
-  return [
+  const rules = [
     {
       ruleName: "Trim Whitespace",
       source: RULE_SOURCE.PREDEFINED,
@@ -43,19 +43,24 @@ export function buildPredefinedRulesForField(field) {
       keyEnforced: key,
       severity: key ? "error" : "warning",
     },
-    {
+  ];
+
+  // Duplicate Check only when key = "X"
+  if (key) {
+    rules.push({
       ruleName: "Duplicate Check",
       source: RULE_SOURCE.PREDEFINED,
       ruleId: COMMON_RULE_IDS.DUPLICATE,
       type: "validation",
-      description: key
-        ? "Key field must not contain duplicate values across the uploaded file."
-        : "Check duplicate values across the complete uploaded file.",
-      constraint: key ? "UNIQUE_REQUIRED" : "FLAG_DUPLICATES",
-      keyEnforced: key,
-      severity: key ? "error" : "warning",
-    },
-  ];
+      description:
+        "Key field must not contain duplicate values across the uploaded file.",
+      constraint: "UNIQUE_REQUIRED",
+      keyEnforced: true,
+      severity: "error",
+    });
+  }
+
+  return rules;
 }
 
 /** @deprecated use buildPredefinedRulesForField */
