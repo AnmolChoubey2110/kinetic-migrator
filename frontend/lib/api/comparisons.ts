@@ -160,6 +160,42 @@ export async function downloadComparisonPdf(batchId: string): Promise<Blob> {
   return response.blob();
 }
 
+export type BatchUploadFileSummary = {
+  id: string;
+  file_type: "preload" | "postload" | string;
+  original_filename: string;
+  uploaded_at: string;
+  row_count: number;
+};
+
+export type BatchUploadFileData = BatchUploadFileSummary & {
+  columns: string[];
+  rows: Record<string, unknown>[];
+};
+
+export async function fetchBatchFiles(
+  batchId: string,
+): Promise<{ batch_id: string; files: BatchUploadFileSummary[] }> {
+  const response = await apiFetch(`/api/comparisons/${batchId}/files`);
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+  return parseJson(response);
+}
+
+export async function fetchBatchFileData(
+  batchId: string,
+  uploadId: string,
+): Promise<{ batch_id: string; file: BatchUploadFileData }> {
+  const response = await apiFetch(
+    `/api/comparisons/${batchId}/files/${uploadId}`,
+  );
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+  return parseJson(response);
+}
+
 export function isNeedsBusinessObject(
   err: unknown,
 ): err is ComparisonApiError & { body: NeedsBusinessObjectError } {

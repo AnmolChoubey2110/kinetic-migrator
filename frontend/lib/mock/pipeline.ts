@@ -27,15 +27,18 @@ export type PipelineMetric = {
 };
 
 export const pipelineCopy = {
-  pageTitle: "Data Validation Results",
+  pageTitle: "Comparison Report",
   analysisPrefix: "Analysis complete for",
-  batchId: "batch_092_delta",
+  analysisProcessing: "Comparison running for",
+  analysisFailed: "Comparison failed for",
+  batchId: "—",
+  downloadPdfLabel: "Download PDF",
   downloadXlsLabel: "Download as XLS",
   downloadWordLabel: "Download as Word",
-  issuesTitle: "Identified Migration Issues",
+  issuesTitle: "Structured findings",
   filterAllLabel: "All Categories",
   filterCriticalLabel: "Critical Only",
-  paginationLabel: "Showing 1-5 of 24 issues",
+  paginationLabel: "Showing findings from this comparison",
 } as const;
 
 export const pipelineMetrics: PipelineMetric[] = [
